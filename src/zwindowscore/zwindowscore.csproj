@@ -1,0 +1,97 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PackageIcon></PackageIcon>
+    <PackageIconUrl />
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <StartupObject />
+    <NoWarn>$(NoWarn);WFO1000;WFDEV004;CS0672</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="favicon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="favicon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="layouts.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Slions.VirtualDesktop" Version="6.9.2" />
+    <PackageReference Include="Slions.VirtualDesktop.WinForms" Version="6.9.2" />
+    <PackageReference Include="Slions.VirtualDesktop.WPF" Version="6.9.2" />
+    <PackageReference Include="WindowsDisplayAPI" Version="1.3.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="LayoutEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="LayoutEditor.Designer.cs">
+      <DependentUpon>LayoutEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Settings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Settings.Designer.cs">
+      <DependentUpon>Settings.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utils\UI\DesktopAnchor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Utils\UI\MoveableScreenElement.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Utils\UI\Noti.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Utils\UI\ScreenElement.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Utils\UI\TabButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="LayoutEditor.resx">
+      <DependentUpon>LayoutEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Settings.resx">
+      <DependentUpon>Settings.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Utils\UI\Noti.resx">
+      <DependentUpon>Noti.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
