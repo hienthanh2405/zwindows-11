@@ -102,6 +102,7 @@ namespace zwindowscore
             this.Load += Settings_Load1;
 
             MyInit();
+            ApplyModernTheme();
 
             WindowsDesktop.VirtualDesktop.CurrentChanged += VirtualDesktop_CurrentChanged;
             WindowsDesktop.VirtualDesktop.Created += VirtualDesktop_Created;
@@ -937,6 +938,187 @@ namespace zwindowscore
             }
 
             return SnapActiveWindowToLayoutIndex(targetIndex);
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            Win32Helper.ApplyModernWindowStyle(this.Handle, true, true);
+        }
+
+        private void ApplyModernTheme()
+        {
+            this.BackColor = Color.FromArgb(30, 30, 30);
+            this.ForeColor = Color.White;
+            try
+            {
+                this.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+            }
+            catch { }
+
+            panel1.BackColor = Color.FromArgb(30, 30, 30);
+            panel2.BackColor = Color.FromArgb(24, 24, 24);
+            panel3.BackColor = Color.FromArgb(30, 30, 30);
+            panel4.BackColor = Color.FromArgb(30, 30, 30);
+            panel7.BackColor = Color.FromArgb(24, 24, 24);
+            panel8.BackColor = Color.FromArgb(30, 30, 30);
+            pnlFGs.BackColor = Color.FromArgb(30, 30, 30);
+
+            tabPage1.BackColor = Color.FromArgb(30, 30, 30);
+            tabPage2.BackColor = Color.FromArgb(30, 30, 30);
+
+            txtSettings.BackColor = Color.FromArgb(18, 18, 18);
+            txtSettings.ForeColor = Color.FromArgb(235, 235, 235);
+            txtSettings.BorderStyle = BorderStyle.FixedSingle;
+            try
+            {
+                txtSettings.Font = new Font("Cascadia Code", 10f, FontStyle.Regular);
+            }
+            catch
+            {
+                txtSettings.Font = new Font("Consolas", 10f, FontStyle.Regular);
+            }
+
+            lbForegroundGroups.BackColor = Color.FromArgb(22, 22, 22);
+            lbForegroundGroups.ForeColor = Color.White;
+            lbForegroundGroups.BorderStyle = BorderStyle.FixedSingle;
+            lbForegroundGroups.Font = new Font("Segoe UI", 9.5f);
+
+            lbForegroundGroupWindows.BackColor = Color.FromArgb(22, 22, 22);
+            lbForegroundGroupWindows.ForeColor = Color.White;
+            lbForegroundGroupWindows.BorderStyle = BorderStyle.FixedSingle;
+            lbForegroundGroupWindows.Font = new Font("Segoe UI", 9.5f);
+
+            txtSelectedWindow.BackColor = Color.FromArgb(22, 22, 22);
+            txtSelectedWindow.ForeColor = Color.FromArgb(96, 205, 255);
+            txtSelectedWindow.BorderStyle = BorderStyle.FixedSingle;
+
+            StyleControlsRecursively(this);
+            AddQuickControlsBar();
+        }
+
+        private void StyleControlsRecursively(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                if (c is Button btn)
+                {
+                    btn.FlatStyle = FlatStyle.Flat;
+                    btn.FlatAppearance.BorderSize = 1;
+                    btn.FlatAppearance.BorderColor = Color.FromArgb(60, 60, 60);
+                    btn.BackColor = Color.FromArgb(42, 42, 42);
+                    btn.ForeColor = Color.White;
+                    btn.Font = new Font("Segoe UI", 9f, FontStyle.Regular);
+                    btn.Cursor = Cursors.Hand;
+                    btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(60, 60, 60);
+                    btn.FlatAppearance.MouseDownBackColor = Color.FromArgb(25, 25, 25);
+                }
+                else if (c is Label lbl)
+                {
+                    lbl.ForeColor = Color.FromArgb(230, 230, 230);
+                }
+
+                if (c.HasChildren)
+                {
+                    StyleControlsRecursively(c);
+                }
+            }
+        }
+
+        private void AddQuickControlsBar()
+        {
+            var pnlQuick = new FlowLayoutPanel();
+            pnlQuick.Dock = DockStyle.Top;
+            pnlQuick.Height = 46;
+            pnlQuick.Padding = new Padding(12, 8, 12, 6);
+            pnlQuick.BackColor = Color.FromArgb(24, 24, 24);
+            pnlQuick.WrapContents = false;
+            pnlQuick.AutoScroll = true;
+
+            var lblPresets = new Label
+            {
+                Text = "⚡ Presets:",
+                ForeColor = Color.FromArgb(96, 205, 255),
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                AutoSize = true,
+                Margin = new Padding(0, 6, 8, 0)
+            };
+            pnlQuick.Controls.Add(lblPresets);
+
+            var presets = new (string key, string label)[]
+            {
+                ("2_col", "⊞ 2 Cols + Full"),
+                ("3_col", "▤ 3 Columns"),
+                ("ultrawide_focus", "◫ Ultrawide Focus"),
+                ("grid_4", "▦ Grid 4"),
+                ("1_large_2_small", "◨ 1 Large + 2 Small")
+            };
+
+            foreach (var p in presets)
+            {
+                var btn = new Button
+                {
+                    Text = p.label,
+                    AutoSize = true,
+                    Height = 30,
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(38, 38, 38),
+                    ForeColor = Color.White,
+                    Font = new Font("Segoe UI", 9f, FontStyle.Regular),
+                    Cursor = Cursors.Hand,
+                    Margin = new Padding(0, 0, 6, 0)
+                };
+                btn.FlatAppearance.BorderSize = 1;
+                btn.FlatAppearance.BorderColor = Color.FromArgb(55, 55, 55);
+                btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(60, 60, 60);
+                string k = p.key;
+                string l = p.label;
+                btn.Click += (s, e) => ApplyPreset(k, l);
+                pnlQuick.Controls.Add(btn);
+            }
+
+            var chkShift = new CheckBox
+            {
+                Text = "Hold Shift to Snap",
+                Checked = Global.Settings.HoldShiftKeyToSnap,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9f),
+                AutoSize = true,
+                Margin = new Padding(14, 6, 0, 0),
+                Cursor = Cursors.Hand
+            };
+            chkShift.CheckedChanged += (s, e) =>
+            {
+                Global.Settings.HoldShiftKeyToSnap = chkShift.Checked;
+                if (_mniHoldShift != null) _mniHoldShift.Checked = chkShift.Checked;
+                SaveSettingsToFile();
+            };
+            pnlQuick.Controls.Add(chkShift);
+
+            var chkHotkeys = new CheckBox
+            {
+                Text = "Global Hotkeys",
+                Checked = Global.Settings.EnableHotkeys,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9f),
+                AutoSize = true,
+                Margin = new Padding(12, 6, 0, 0),
+                Cursor = Cursors.Hand
+            };
+            chkHotkeys.CheckedChanged += (s, e) =>
+            {
+                Global.Settings.EnableHotkeys = chkHotkeys.Checked;
+                if (_mniHotkeys != null) _mniHotkeys.Checked = chkHotkeys.Checked;
+                SaveSettingsToFile();
+                if (Global.Settings.EnableHotkeys)
+                    RegisterGlobalHotkeys();
+                else
+                    UnregisterGlobalHotkeys();
+            };
+            pnlQuick.Controls.Add(chkHotkeys);
+
+            panel3.Controls.Add(pnlQuick);
+            pnlQuick.BringToFront();
         }
 
         #endregion

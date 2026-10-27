@@ -10,14 +10,14 @@ namespace zwindowscore
     public class LayoutHighlighter
     {
         ScreenBoundingRectangle _rectangle;
-        int _borderSize = 5;
+        int _borderSize = 3;
         MonitorDevice _monitor;
         MonitorLayout _layout;
-        int textWidth = 100;
-        int textHeight = 80;
+        int textWidth = 72;
+        int textHeight = 72;
         int _monitorX = 0;
         int _monitorY = 0;
-        float _opacity = 0.2f;
+        float _opacity = 0.25f;
         ContextMenuStrip _ctxTabBtnMenu;
 
         public LayoutHighlighter(Form desktopAnchor, MonitorDevice device)
@@ -44,10 +44,9 @@ namespace zwindowscore
                 monitorY + layout.Bottom - _borderSize
             );
 
-            
             var textRect = new Rectangle(
-                monitorX + layout.DockX.Value,
-                monitorY + layout.DockY.Value - textHeight/2,
+                monitorX + layout.DockX.Value - textWidth / 2,
+                monitorY + layout.DockY.Value - textHeight / 2,
                 textWidth, 
                 textHeight
             );
@@ -96,11 +95,8 @@ namespace zwindowscore
         {
             _ctxTabBtnMenu.Items.Clear();
             _ctxTabBtnMenu.Items.Add($"Update Layout #{_rectangle.Text} (X: {_layout.X}%, Y: {_layout.Y}%, Width: {_layout.Width}%, Height: {_layout.Height}%)");
-            //if(Global.CountLayouts(_monitor) > 1)
-            //{
-                _ctxTabBtnMenu.Items.Add(new ToolStripSeparator());
-                _ctxTabBtnMenu.Items.Add($"Remove Layout #{_rectangle.Text}");
-            //}
+            _ctxTabBtnMenu.Items.Add(new ToolStripSeparator());
+            _ctxTabBtnMenu.Items.Add($"Remove Layout #{_rectangle.Text}");
             _ctxTabBtnMenu.Items.Add(new ToolStripSeparator());
             _ctxTabBtnMenu.Items.Add("Add New Layout");
 
@@ -113,21 +109,10 @@ namespace zwindowscore
             var text = e.ClickedItem.Text;
             if (text == $"Remove Layout #{_rectangle.Text}")
             {
-                //if(Global.CountLayouts(_monitor) <= 1)
-                //{
-                //    return;
-                //}
-                /*var confirmResult =  MessageBox.Show(_rectangle.Label.Form, $"Are you sure to delete layout #{_rectangle.Text}?", "Confirm Delete!",
-                                     MessageBoxButtons.YesNo);
-                if (confirmResult == DialogResult.Yes)
-                {
-                    _device.Layouts.Remove(_layout);
-                    Dispose();
-                }*/
                 _monitor.Layouts.Remove(_layout);
                 Dispose();
             }
-            else if (text == $"Add New Layout")
+            else if (text == "Add New Layout")
             {
                 var l = new MonitorLayout
                 {
@@ -164,13 +149,12 @@ namespace zwindowscore
 
         private void TextMoved(object sender, EventArgs e)
         {
-            _layout.DockX = _rectangle.TextCurrentLocation.X - _monitorX;
+            _layout.DockX = _rectangle.TextCurrentLocation.X + textWidth / 2 - _monitorX;
             _layout.DockY = _rectangle.TextCurrentLocation.Y + textHeight / 2 - _monitorY;
         }
 
         private void TextRightClick(object sender, EventArgs e)
         {
-            //TextClick(sender, e);
         }
 
         private void TextClick(object sender, EventArgs e)
@@ -198,7 +182,6 @@ namespace zwindowscore
         public void Dispose()
         {
             _ctxTabBtnMenu.Dispose();
-            _rectangle.Dispose();
         }
     }
 }

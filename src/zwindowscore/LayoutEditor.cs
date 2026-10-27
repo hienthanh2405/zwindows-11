@@ -28,6 +28,8 @@ namespace zwindowscore
         {
             InitializeComponent();
 
+            ApplyModernTheme();
+
             nX.ValueChanged += ValueChangedEvent;
             nY.ValueChanged += ValueChangedEvent;
             nW.ValueChanged += ValueChangedEvent;
@@ -42,6 +44,64 @@ namespace zwindowscore
             this.FormClosed += LayoutEditor_FormClosed;
         }
 
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            Win32Helper.ApplyModernWindowStyle(this.Handle, true, true);
+        }
+
+        private void ApplyModernTheme()
+        {
+            this.BackColor = Color.FromArgb(32, 32, 32);
+            this.ForeColor = Color.White;
+            try
+            {
+                this.Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
+            }
+            catch { }
+
+            foreach (Control c in this.Controls)
+            {
+                StyleControl(c);
+            }
+        }
+
+        private void StyleControl(Control c)
+        {
+            if (c is NumericUpDown num)
+            {
+                num.BackColor = Color.FromArgb(22, 22, 22);
+                num.ForeColor = Color.White;
+                num.BorderStyle = BorderStyle.FixedSingle;
+            }
+            else if (c is ComboBox cb)
+            {
+                cb.BackColor = Color.FromArgb(22, 22, 22);
+                cb.ForeColor = Color.White;
+                cb.FlatStyle = FlatStyle.Flat;
+            }
+            else if (c is Label lbl)
+            {
+                lbl.ForeColor = Color.FromArgb(230, 230, 230);
+            }
+            else if (c is Button btn)
+            {
+                btn.FlatStyle = FlatStyle.Flat;
+                btn.BackColor = Color.FromArgb(45, 45, 45);
+                btn.ForeColor = Color.White;
+                btn.FlatAppearance.BorderSize = 1;
+                btn.FlatAppearance.BorderColor = Color.FromArgb(60, 60, 60);
+            }
+
+            if (c.HasChildren)
+            {
+                foreach (Control child in c.Controls)
+                {
+                    StyleControl(child);
+                }
+            }
+        }
+
         private void LayoutEditor_FormClosed(object sender, FormClosedEventArgs e)
         {
             instance = null;
@@ -49,7 +109,7 @@ namespace zwindowscore
 
         private void ValueChangedEvent(object sender, EventArgs e)
         {
-            if(noChanged || _layout == null) return;
+            if (noChanged || _layout == null) return;
 
             _layout.X = (int)nX.Value;
             _layout.Y = (int)nY.Value;
@@ -62,10 +122,10 @@ namespace zwindowscore
             _layout.BottomOffset = (int)nOffsetB.Value;
 
             var dn = cbDesktops.SelectedItem != null ? cbDesktops.SelectedItem.ToString() : "default";
-            if(dn == "[All Desktops]") dn = "default";
+            if (dn == "[All Desktops]") dn = "default";
             _layout.DesktopName = dn;
 
-            if(ValueChangedCallback != null)
+            if (ValueChangedCallback != null)
             {
                 ValueChangedCallback();
             }
@@ -81,7 +141,7 @@ namespace zwindowscore
             cbDesktops.Items.Clear();
             cbDesktops.Items.Add(Global.CurrentDesktopName);
             cbDesktops.Items.Add("[All Desktops]");
-            if(layout.DesktopName == "default")
+            if (layout.DesktopName == "default")
             {
                 cbDesktops.SelectedItem = "[All Desktops]";
             }

@@ -296,5 +296,32 @@ namespace zwindowscore
         [DllImport("dwmapi.dll")]
         public static extern int DwmGetWindowAttribute(IntPtr hwnd, DwmWindowAttribute dwAttribute, out uint pvAttribute, int cbAttribute);
 
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmSetWindowAttribute(IntPtr hwnd, DwmWindowAttribute dwAttribute, ref int pvAttribute, int cbAttribute);
+
+        [DllImport("gdi32.dll")]
+        public static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
+
+        [DllImport("user32.dll")]
+        public static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool bRedraw);
+
+        public static void ApplyModernWindowStyle(IntPtr hwnd, bool darkMode = true, bool roundCorners = true)
+        {
+            try
+            {
+                if (darkMode)
+                {
+                    int useDarkMode = 1;
+                    DwmSetWindowAttribute(hwnd, DwmWindowAttribute.UseImmersiveDarkMode, ref useDarkMode, sizeof(int));
+                }
+
+                if (roundCorners)
+                {
+                    int cornerPreference = 2; // DWMWCP_ROUND
+                    DwmSetWindowAttribute(hwnd, DwmWindowAttribute.WindowCornerPreference, ref cornerPreference, sizeof(int));
+                }
+            }
+            catch { }
+        }
     }
 }

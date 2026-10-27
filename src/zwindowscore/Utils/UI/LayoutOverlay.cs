@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using zwindowscore.Enum;
 
@@ -11,18 +12,76 @@ namespace zwindowscore.Utils.UI
         {
             InitializeComponent();
             this.StartPosition = FormStartPosition.Manual;
+            this.DoubleBuffered = true;
 
-            BackColor = Global.GetColor(Global.Settings.WindowDragOverlayColor);
+            Color baseColor = Global.GetColor(Global.Settings.WindowDragOverlayColor);
+            BackColor = baseColor;
             ShowInTaskbar = false;
             MinimizeBox = false;
             MaximizeBox = false;
 
             Load += LayoutOverlay_Load;
+            Resize += LayoutOverlay_Resize;
+            Paint += LayoutOverlay_Paint;
         }
 
         private void LayoutOverlay_Load(object sender, EventArgs e)
         {
-            Win32Helper.SetLayeredWindowAttributes(this.Handle, 0, 100, Win32Helper.LWA_ALPHA);
+            // Set layered window with modern opacity (~55% opacity = 140/255)
+            Win32Helper.SetLayeredWindowAttributes(this.Handle, 0, 140, Win32Helper.LWA_ALPHA);
+            ApplyRoundedCorners();
+        }
+
+        private void LayoutOverlay_Resize(object sender, EventArgs e)
+        {
+            ApplyRoundedCorners();
+            Invalidate();
+        }
+
+        private void ApplyRoundedCorners()
+        {
+            if (this.Width > 0 && this.Height > 0)
+            {
+                try
+                {
+                    IntPtr hRgn = Win32Helper.CreateRoundRectRgn(0, 0, this.Width + 1, this.Height + 1, 16, 16);
+                    Win32Helper.SetWindowRgn(this.Handle, hRgn, true);
+                }
+                catch { }
+            }
+        }
+
+        private void LayoutOverlay_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Draw modern crisp glowing inner border
+            Color borderColor = Color.FromArgb(200, 240, 255);
+            using (var pen = new Pen(borderColor, 2.5f))
+            {
+                using (var path = GetRoundedRectPath(new Rectangle(2, 2, this.Width - 4, this.Height - 4), 14))
+                {
+                    e.Graphics.DrawPath(pen, path);
+                }
+            }
+        }
+
+        private GraphicsPath GetRoundedRectPath(Rectangle bounds, int radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            int diameter = radius * 2;
+            Rectangle arc = new Rectangle(bounds.Location, new Size(diameter, diameter));
+
+            path.AddArc(arc, 180, 90);
+            arc.X = bounds.Right - diameter;
+            path.AddArc(arc, 270, 90);
+            arc.Y = bounds.Bottom - diameter;
+            path.AddArc(arc, 0, 90);
+            arc.X = bounds.Left;
+            path.AddArc(arc, 90, 90);
+
+            path.CloseFigure();
+            return path;
         }
 
         protected override CreateParams CreateParams
@@ -34,7 +93,6 @@ namespace zwindowscore.Utils.UI
                 Params.ExStyle |= 0x80000;    // WS_EX_LAYERED
                 Params.ExStyle |= 0x20;       // WS_EX_TRANSPARENT (click-through)
                 Params.ExStyle |= 0x08000000; // WS_EX_NOACTIVATE (never steal focus)
-
                 return Params;
             }
         }
@@ -61,6 +119,13 @@ namespace zwindowscore.Utils.UI
 
         public static void ShowOverlay(IntPtr hwndOwner, int x, int y, int width, int height)
         {
+            // Apply refined FancyZones-style inner margin gap (4px)
+            const int gap = 4;
+            int targetX = x + gap;
+            int targetY = y + gap;
+            int targetW = Math.Max(20, width - gap * 2);
+            int targetH = Math.Max(20, height - gap * 2);
+
             if (_current == null || _current.IsDisposed)
             {
                 _current = new LayoutOverlay();
@@ -72,15 +137,14 @@ namespace zwindowscore.Utils.UI
                 _current.Visible = true;
             }
 
-            if (_lastX != x || _lastY != y || _lastW != width || _lastH != height)
+            if (_lastX != targetX || _lastY != targetY || _lastW != targetW || _lastH != targetH)
             {
-                _lastX = x;
-                _lastY = y;
-                _lastW = width;
-                _lastH = height;
+                _lastX = targetX;
+                _lastY = targetY;
+                _lastW = targetW;
+                _lastH = targetH;
 
-                // Move and resize in a single Win32 call without activating or stealing focus
-                Win32Helper.SetWindowPos(_current.Handle, Win32Helper.HWND_TOP, x, y, width, height,
+                Win32Helper.SetWindowPos(_current.Handle, Win32Helper.HWND_TOP, targetX, targetY, targetW, targetH,
                     WindowPosFlags.DoNotActivate | WindowPosFlags.ShowWindow);
             }
         }

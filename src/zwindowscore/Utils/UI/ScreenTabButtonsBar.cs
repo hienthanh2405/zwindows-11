@@ -47,8 +47,8 @@ namespace zwindowscore.Utils
             {
                 _maxWidth = value;
                 _bar.MaximumSize = new System.Drawing.Size(_maxWidth, Global.Settings.TabButtonHeight);
-                _pnlWindows.MaximumSize = new System.Drawing.Size(_maxWidth-50, Global.Settings.TabButtonHeight);
-                _wrapper.MaximumSize = new System.Drawing.Size(_maxWidth-25, Global.Settings.TabButtonHeight);
+                _pnlWindows.MaximumSize = new System.Drawing.Size(_maxWidth - 50, Global.Settings.TabButtonHeight);
+                _wrapper.MaximumSize = new System.Drawing.Size(_maxWidth - 25, Global.Settings.TabButtonHeight);
             }
             get
             {
@@ -67,22 +67,31 @@ namespace zwindowscore.Utils
             _bar.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             _bar.HorizontalScroll.Visible = false;
             _bar.HorizontalScroll.Enabled = false;
-            _bar.Padding = new Padding(0, 0, 25, 0);
-            _bar.BackColor = Global.GetColor(Global.Settings.TabBarColor);
+            _bar.Padding = new Padding(2, 2, 25, 2);
+            _bar.BackColor = Color.FromArgb(24, 24, 24);
             _bar.Cursor = Cursors.SizeAll;
+
+            _bar.Resize += (s, e) =>
+            {
+                if (_bar.Width > 0 && _bar.Height > 0)
+                {
+                    try
+                    {
+                        IntPtr hRgn = Win32Helper.CreateRoundRectRgn(0, 0, _bar.Width + 1, _bar.Height + 1, 8, 8);
+                        Win32Helper.SetWindowRgn(_bar.Handle, hRgn, true);
+                    }
+                    catch { }
+                }
+            };
 
             _wrapper = new FlowLayoutPanel();
             _wrapper.WrapContents = false;
-            //_wrapper.Padding = new Padding(0);
 
             _pnlWindows = new FlowLayoutPanel();
-
             _pnlWindows.Margin = new Padding(0);
             _pnlWindows.WrapContents = false;
             _pnlWindows.AutoScroll = true;
             _pnlWindows.AutoSize = false;
-            //_pnlWindows.AllowDrop = true;
-            //_pnlWindows.DragDrop += pnlWindows_DragDrop;
 
             var moreBtn = new TabButton($"TabBar");
             moreBtn.Icon = Resources.iconMore;
@@ -98,7 +107,6 @@ namespace zwindowscore.Utils
             _ctxTabBtnMenuTopmostItem = new ToolStripMenuItem("Topmost");
             _ctxTabBtnMenuNotificationItem = new ToolStripMenuItem("Notification");
             _ctxTabBtnMenuCloseItem = new ToolStripMenuItem("Close");
-            //_ctxTabBtnMenuCloseItem.Image = 
 
             _ctxTabBtnMenu.Items.Add(_ctxTabBtnMenuSnapItem);
             _ctxTabBtnMenu.Items.Add(_ctxTabBtnMenuTopmostItem);
@@ -118,15 +126,12 @@ namespace zwindowscore.Utils
             _ctxMenu.Items.Add(_ctxMenuSnapItem);
             _ctxMenu.Items.Add(_ctxMenuTopmostItem);
 
-            
             moreBtn.ContextMenuStrip = _ctxMenu;
 
-            
             _wrapper.Controls.Add(_pnlWindows);
             _wrapper.Controls.Add(moreBtn);
             _bar.Controls.Add(_wrapper);
         }
-
 
         private void _ctxMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -287,11 +292,8 @@ namespace zwindowscore.Utils
                 Dispose();
                 return;
             }
-            //Console.WriteLine("Bar Width: {0}", _pnl.Width);
             _pnlWindows.Width = WindowButtons.Count * Global.Settings.TabButtonWidth;
-            //_pnlWindows.Height = 25;
             _wrapper.Width = _pnlWindows.Width + 25;
-            //_wrapper.Height = 25;
             var btnsw = _wrapper.Width + 25;
             _location = new Rectangle();
             if(btnsw < MaxWidth)
@@ -304,10 +306,6 @@ namespace zwindowscore.Utils
             }
             _location.Y = Y;
             Location = _location;
-
-            //Console.WriteLine($"---bar: {Key}");
-            //Console.WriteLine($"_pnlWindows.Width: {_pnlWindows.Width}");
-            //Console.WriteLine($"_wrapper.Width: {_wrapper.Width}");
         }
 
         public Form Bar
@@ -399,7 +397,6 @@ namespace zwindowscore.Utils
             Win32Helper.SetWindowPos(_bar.Handle, Win32Helper.HWND_TOPMOST, 
                 _location.X, _location.Y, 
                 0, 0, WindowPosFlags.Unknown | WindowPosFlags.IgnoreResize);
-
         }
 
         #region IDisposable Members

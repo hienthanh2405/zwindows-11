@@ -1,4 +1,3 @@
-
 using System;
 using System.Drawing;
 using System.Windows.Forms;
@@ -21,10 +20,18 @@ namespace zwindowscore.Utils
             _label = new Label();
             _label.Text = "";
             _label.ForeColor = Color.White;
-            _label.Font = new Font("Arial", 28, FontStyle.Bold);
+            try
+            {
+                _label.Font = new Font("Segoe UI Variable Display", 22, FontStyle.Bold);
+            }
+            catch
+            {
+                _label.Font = new Font("Segoe UI", 22, FontStyle.Bold);
+            }
             _label.AutoSize = false;
             _label.Dock = DockStyle.Fill;
             _label.TextAlign = ContentAlignment.MiddleCenter;
+            _label.BackColor = Color.FromArgb(28, 28, 28); // Modern dark card background
 
             _form = new MoveableScreenElement(desktopAnchor);
             _form.TopMost = true;
@@ -32,11 +39,27 @@ namespace zwindowscore.Utils
             _form.Top = 0;
             _form.Width = 1;
             _form.Height = 1;
-            _form.Opacity = 1;
+            _form.Opacity = 0.95;
+            _form.BackColor = Color.FromArgb(28, 28, 28);
             
             _form.AddControls(_label);
+            _color = Color.FromArgb(28, 28, 28);
 
-            _color = Color.Black;
+            _form.Resize += (s, e) => ApplyRoundedRegion();
+        }
+
+        private void ApplyRoundedRegion()
+        {
+            if (_form.Width > 0 && _form.Height > 0)
+            {
+                try
+                {
+                    int radius = 18;
+                    IntPtr hRgn = Win32Helper.CreateRoundRectRgn(0, 0, _form.Width + 1, _form.Height + 1, radius, radius);
+                    Win32Helper.SetWindowRgn(_form.Handle, hRgn, true);
+                }
+                catch { }
+            }
         }
 
         public EventHandler Click
@@ -101,6 +124,7 @@ namespace zwindowscore.Utils
             {
                 _color = value;
                 _form.BackColor = value;
+                _label.BackColor = value;
             }
         }
 
@@ -125,6 +149,7 @@ namespace zwindowscore.Utils
             Win32Helper.SetWindowPos(_form.Handle, Win32Helper.HWND_TOPMOST, 
                 _location.X, _location.Y, 
                 _location.Width, _location.Height, Enum.WindowPosFlags.Unknown);
+            ApplyRoundedRegion();
         }
 
         #region IDisposable Members
