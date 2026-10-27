@@ -248,18 +248,20 @@ namespace zwindowscore
 
         public static string GetMonitorId(MonitorDeviceInfo mi)
         {
+            if (string.IsNullOrEmpty(mi?.DeviceId)) return string.Empty;
             var tmps = mi.DeviceId.ToLower().Split('\\').ToList();
-            tmps.RemoveAt(tmps.Count - 1);
+            if (tmps.Count > 1) tmps.RemoveAt(tmps.Count - 1);
             return String.Join("_", tmps);
         }
 
         public static MonitorDeviceDefinition GetMonitorDefinition(MonitorDeviceInfo mi)
         {
             var md = new MonitorDeviceDefinition();
+            if (string.IsNullOrEmpty(mi?.DeviceId)) return md;
             var tmps = mi.DeviceId.ToLower().Split('\\').ToList();
-            var name = tmps[1];
+            var name = tmps.Count > 1 ? tmps[1] : "Monitor";
             var portId = tmps[tmps.Count - 1];
-            tmps.RemoveAt(tmps.Count - 1);
+            if (tmps.Count > 1) tmps.RemoveAt(tmps.Count - 1);
 
             md.Id = mi.DeviceId.CleanMonitorId();
             md.Name = name;
@@ -270,8 +272,12 @@ namespace zwindowscore
 
         public static string CleanMonitorId(this string monitorId)
         {
+            if (string.IsNullOrEmpty(monitorId)) return string.Empty;
             var tmps = monitorId.ToLower().Split('\\').ToList();
-            tmps.RemoveAt(tmps.Count - 1);
+            if (tmps.Count > 1)
+            {
+                tmps.RemoveAt(tmps.Count - 1);
+            }
             return String.Join("_", tmps);
         }
 
@@ -475,60 +481,78 @@ namespace zwindowscore
 
         public static void ApplyPreset(string presetName, string monitorId = null)
         {
-            if (string.IsNullOrEmpty(monitorId) && CurrentMonitor != null)
+            if (Settings?.MonitorsLayouts == null || Settings.MonitorsLayouts.Count == 0)
             {
-                monitorId = CurrentMonitor.Id;
+                LoadMonitors();
             }
 
-            if (string.IsNullOrEmpty(monitorId))
+            var targetMonitors = new List<MonitorDevice>();
+
+            if (!string.IsNullOrEmpty(monitorId))
             {
-                var first = MonitorDevices.FirstOrDefault();
-                if (first != null) monitorId = first.Id;
+                if (Settings.MonitorsLayouts.ContainsKey(monitorId))
+                {
+                    targetMonitors.Add(Settings.MonitorsLayouts[monitorId]);
+                }
+            }
+            else
+            {
+                // When monitorId is null, apply to all monitors in Settings to ensure all displays are ready
+                foreach (var kvp in Settings.MonitorsLayouts)
+                {
+                    if (kvp.Value != null)
+                    {
+                        targetMonitors.Add(kvp.Value);
+                    }
+                }
             }
 
-            if (string.IsNullOrEmpty(monitorId) || !Settings.MonitorsLayouts.ContainsKey(monitorId))
+            if (targetMonitors.Count == 0)
             {
                 return;
             }
 
-            var monitor = Settings.MonitorsLayouts[monitorId];
-            monitor.Layouts.Clear();
-
-            switch (presetName)
+            foreach (var monitor in targetMonitors)
             {
-                case "2_col": // 2 Columns (50 / 50) + Fullscreen (100 / 100)
-                    monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 100, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    break;
+                monitor.Layouts.Clear();
 
-                case "3_col": // 33 / 34 / 33
-                    monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 33, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 33, Y = 0, Width = 34, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 67, Y = 0, Width = 33, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    break;
+                switch (presetName)
+                {
+                    case "2_col": // 2 Columns (50 / 50) + Fullscreen (100 / 100)
+                        monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 100, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        break;
 
-                case "ultrawide_focus": // 25 / 50 / 25
-                    monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 25, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 25, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 75, Y = 0, Width = 25, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    break;
+                    case "3_col": // 33 / 34 / 33
+                        monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 33, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 33, Y = 0, Width = 34, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 67, Y = 0, Width = 33, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        break;
 
-                case "grid_4": // 2x2
-                    monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 0, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 50, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 50, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
-                    break;
+                    case "ultrawide_focus": // 25 / 50 / 25
+                        monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 25, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 25, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 75, Y = 0, Width = 25, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        break;
 
-                case "1_large_2_small": // 50 left, two 50s right
-                    monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 0, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
-                    monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 50, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
-                    break;
+                    case "grid_4": // 2x2
+                        monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 0, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 50, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 50, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
+                        break;
+
+                    case "1_large_2_small": // 50 left, two 50s right
+                        monitor.Layouts.Add(new MonitorLayout { X = 0, Y = 0, Width = 50, Height = 100, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 0, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
+                        monitor.Layouts.Add(new MonitorLayout { X = 50, Y = 50, Width = 50, Height = 50, Offset = new int[4] { 0, 0, 0, 0 } });
+                        break;
+                }
+
+                UpdateMonitorLayouts(monitor);
             }
 
-            UpdateMonitorLayouts(monitor);
             try
             {
                 File.WriteAllText(GetLayoutsFilePath(), JsonConvert.SerializeObject(Settings, Formatting.Indented));

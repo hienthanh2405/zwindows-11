@@ -30,6 +30,7 @@ namespace zwindowscore
         private Task _applyingTaskbarTask;
         private bool _manualTabBarsVisible = true;
         private bool _currentTabBarsVisible = false;
+        private System.Windows.Forms.Timer _presetPreviewTimer;
 
         private const int WM_HOTKEY = 0x0312;
         private const uint MOD_ALT = 0x0001;
@@ -344,12 +345,13 @@ namespace zwindowscore
             if(flag || forceShow)
             {
                 var monitors = Monitor.GetMonitors();
-                var i = 0;
                 foreach(var mon in monitors)
                 {
+                    if (string.IsNullOrEmpty(mon?.DeviceId)) continue;
                     var monId = mon.DeviceId.CleanMonitorId();
 
                     if(monitorId != null && monId != monitorId) continue;
+                    if(!Global.Settings.MonitorsLayouts.ContainsKey(monId)) continue;
 
                     var monitor = Global.Settings.MonitorsLayouts[monId];
                     if(!monitor.IsAvailable) continue;
@@ -383,11 +385,8 @@ namespace zwindowscore
 
                         if(layoutIndexes != null && !layoutIndexes.Contains(li)) continue;
                         var hi = new LayoutHighlighter(Global.GetDesktopAnchor(Global.CurrentDesktopName), monitor);
-                        hi.DrawRectangle((li + 1).ToString(), monitor.X, monitor.Y, layout, Global.Colors[li]);
-                        if(i >= Global.Colors.Count)
-                        {
-                            i = 0;
-                        }
+                        int colorIndex = li >= 0 ? (li % Global.Colors.Count) : 0;
+                        hi.DrawRectangle((li + 1).ToString(), monitor.X, monitor.Y, layout, Global.Colors[colorIndex]);
                         layoutHighlighters[desktopName].Add(hi);
                     }
                 }
@@ -724,7 +723,22 @@ namespace zwindowscore
         {
             Global.ApplyPreset(preset);
             MyRefresh();
+
+            // Briefly preview the layout zone highlighters for 1.2s then auto-clear
             ToggleShowHideLayouts(true);
+            if (_presetPreviewTimer == null)
+            {
+                _presetPreviewTimer = new System.Windows.Forms.Timer();
+                _presetPreviewTimer.Tick += (s, e) =>
+                {
+                    _presetPreviewTimer.Stop();
+                    ClearLayoutHighlighters(Global.CurrentDesktopName);
+                };
+            }
+            _presetPreviewTimer.Stop();
+            _presetPreviewTimer.Interval = 1200;
+            _presetPreviewTimer.Start();
+
             SaveSettingsToFile();
             Noti.ShowMessage($"Layout: {title}", 1500);
         }
@@ -753,8 +767,12 @@ namespace zwindowscore
         {
             try
             {
-                txtSettings.Text = JsonConvert.SerializeObject(Global.Settings, Formatting.Indented);
-                File.WriteAllText(Global.GetLayoutsFilePath(), txtSettings.Text);
+                string json = JsonConvert.SerializeObject(Global.Settings, Formatting.Indented);
+                if (txtSettings != null && !txtSettings.IsDisposed)
+                {
+                    txtSettings.Text = json;
+                }
+                File.WriteAllText(Global.GetLayoutsFilePath(), json);
             }
             catch { }
         }

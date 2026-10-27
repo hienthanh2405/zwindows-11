@@ -7,7 +7,7 @@ using zwindowscore.Utils;
 
 namespace zwindowscore
 {
-    public class LayoutHighlighter
+    public class LayoutHighlighter : IDisposable
     {
         ScreenBoundingRectangle _rectangle;
         int _borderSize = 3;
@@ -181,7 +181,17 @@ namespace zwindowscore
 
         public void Dispose()
         {
-            _ctxTabBtnMenu.Dispose();
+            if (_rectangle != null)
+            {
+                _rectangle.Visible = false;
+                _rectangle.Dispose();
+                _rectangle = null;
+            }
+            if (_ctxTabBtnMenu != null)
+            {
+                _ctxTabBtnMenu.Dispose();
+                _ctxTabBtnMenu = null;
+            }
         }
     }
 }
