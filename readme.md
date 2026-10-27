@@ -1,21 +1,23 @@
 ﻿# zWindows 11 (zWindowsCore) - User Guide & Feature Documentation
 
-**zWindows 11** (`zwindowscore`) is an advanced workspace optimization and window management tool (Advanced Window Manager & Tiling Engine) designed for Windows 10 and Windows 11.
+**zWindows 11** (`zwindowscore`) is an advanced workspace optimization and window management engine (Tiling Window Manager & FancyZones alternative) built with .NET for Windows 10 and Windows 11.
 
-It provides a smart window arrangement experience similar to FancyZones / Tiling Window Managers, integrated window tab bars (Window Tab Bars), multi-tasking application groups (Foreground Groups), seamless multi-monitor & Virtual Desktop support, and taskbar customization utilities.
+It delivers an elegant, high-performance window tiling experience styled with **Windows 11 Fluent Design**: rounded corner snap overlays, pill flyout notifications, sleek window tab bars, quick preset switchers, multi-tasking application groups (Foreground Groups), and taskbar customization tools.
 
 ---
 
 ## 📑 Table of Contents
 1. [Key Features](#-key-features)
-2. [Global Hotkeys](#-global-hotkeys)
-3. [Mouse & Window Interactions](#-mouse--window-interactions)
-4. [Built-in Layout Presets](#-built-in-layout-presets)
-5. [Window Tab Bars](#-window-tab-bars)
-6. [Foreground Groups](#-foreground-groups)
-7. [Taskbar Utilities](#-taskbar-utilities)
-8. [Configuration & Customization (layouts.json)](#-configuration--customization-layoutsjson)
-9. [Build & Run](#-build--run)
+2. [Windows 11 Fluent Design System](#-windows-11-fluent-design-system)
+3. [Global Hotkeys](#-global-hotkeys)
+4. [Mouse & Window Interactions](#-mouse--window-interactions)
+5. [Built-in Layout Presets](#-built-in-layout-presets)
+6. [Settings & Quick Presets Toolbar](#-settings--quick-presets-toolbar)
+7. [Window Tab Bars](#-window-tab-bars)
+8. [Foreground Groups](#-foreground-groups)
+9. [Taskbar Utilities](#-taskbar-utilities)
+10. [Configuration & Customization (layouts.json)](#-configuration--customization-layoutsjson)
+11. [Build & Run](#-build--run)
 
 ---
 
@@ -27,6 +29,17 @@ It provides a smart window arrangement experience similar to FancyZones / Tiling
 - **Window Tab Bars**: Windows in the same zone or monitor are organized with intuitive top tab buttons, allowing quick switching without Alt+Tab.
 - **Virtual Desktops & Multi-Monitor Support**: Automatically detects Virtual Desktop switching and monitor orientation changes (landscape / portrait). Each desktop can maintain its own independent layout configuration.
 - **Taskbar Enhancements**: Centering taskbar icons (Center Taskbar), enabling transparent taskbars (Transparent Taskbar), or completely hiding the taskbar for maximum screen real estate.
+
+---
+
+## 🎨 Windows 11 Fluent Design System
+
+The UI has been crafted to blend seamlessly into modern Windows 11:
+
+- **Rounded Corner Snap Overlays**: The snap indicator (`LayoutOverlay`) features smooth rounded corners (16px radius) and a FancyZones-style 4px margin gap from display boundaries, paired with a subtle luminous inner border.
+- **Capsule Pill Flyout HUD**: Notifications (`Noti`) appear as a centered floating capsule pill near the top edge of the active display, styled with Dark Acrylic (`#1C1C1C`), a fine border, a glowing blue accent dot (`#60CDFF`), and a smooth fade-out timer.
+- **Fluent Window Tab Buttons**: Tabs feature Segoe UI typography, rounded corners (6px), smooth hover brightening, and an accent indicator strip when active.
+- **Immersive Dark Mode**: The **Settings** and **Layout Editor** windows automatically enable Windows 11 system-level dark mode (`DWMWA_USE_IMMERSIVE_DARK_MODE`) on titlebars, backgrounds, and controls.
 
 ---
 
@@ -47,7 +60,7 @@ All primary shortcuts use the <kbd>Win</kbd> + <kbd>Alt</kbd> prefix to avoid co
 | <kbd>Win</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> | **Toggle Hold Shift to Snap** | Toggles between *Hold Shift to Snap* (default) and *Always Snap while Dragging*. |
 
 > [!TIP]
-> Each time a shortcut is triggered, a clean On-Screen Notification banner pops up for 1–1.5 seconds confirming the executed action.
+> Each time a shortcut is triggered, the centered Pill Flyout HUD pops up for 1–1.5 seconds confirming the executed action.
 
 ---
 
@@ -56,7 +69,7 @@ All primary shortcuts use the <kbd>Win</kbd> + <kbd>Alt</kbd> prefix to avoid co
 ### 1. Smart Window Drag & Snap
 - **When "Hold Shift to Snap" is ON (Default)**:
   1. Click and hold a window's title bar to start dragging.
-  2. Hold the <kbd>Shift</kbd> key: A semi-transparent blue overlay (`#2192FF`) will appear over the closest layout zone under your cursor.
+  2. Hold the <kbd>Shift</kbd> key: A rounded, glowing blue overlay (`#2192FF`) will appear over the closest layout zone under your cursor.
   3. Release the mouse button: The window automatically snaps cleanly into the designated zone.
   4. If you release the <kbd>Shift</kbd> key before releasing the mouse button, the window remains in its freely dragged position.
 - **Handling Maximized Windows**:
@@ -66,13 +79,13 @@ All primary shortcuts use the <kbd>Win</kbd> + <kbd>Alt</kbd> prefix to avoid co
 - **Left-Click Tab**: Activates and brings that window to the foreground.
 - **Double-Click Tab**: Re-snaps the window into its designated layout zone.
 - **Horizontal Drag & Drop Tab**: Reorders tabs within the same tab bar.
-- **Tab Colors**: Active application tabs highlight using their application icon's primary color; tabs belonging to other Virtual Desktops darken automatically.
+- **Hover & Active States**: Hovering highlights the tab background; the active tab displays a glowing bottom accent strip.
 
 ---
 
 ## 📐 Built-in Layout Presets
 
-Presets can be selected from the system tray context menu (`Layout Presets`) or via <kbd>Win</kbd> + <kbd>Alt</kbd> + <kbd>P</kbd>:
+Presets can be selected from the system tray context menu (`Layout Presets`), via <kbd>Win</kbd> + <kbd>Alt</kbd> + <kbd>P</kbd>, or directly from the **Quick Presets Bar** in the Settings window:
 
 ### 1. 2 Columns + Fullscreen (3 Layouts) — *Default & Recommended*
 - **Zone 1**: Left half of the screen (50% Width, 100% Height).
@@ -129,10 +142,27 @@ Presets can be selected from the system tray context menu (`Layout Presets`) or 
 
 ---
 
+## ⚙️ Settings & Quick Presets Toolbar
+
+Open the **Settings** dialog by double-clicking the system tray icon or through the context menu:
+
+- **⚡ Quick Presets Bar**: Located right above the configuration panel, offering 1-click preset switching:
+  - `[ ⊞ 2 Cols + Full ]`
+  - `[ ▤ 3 Columns ]`
+  - `[ ◫ Ultrawide Focus ]`
+  - `[ ▦ Grid 4 ]`
+  - `[ ◨ 1 Large + 2 Small ]`
+- **Instant Toggles**:
+  - `[✓] Hold Shift to Snap` checkbox for on-the-fly toggling.
+  - `[✓] Global Hotkeys` checkbox for enabling or disabling shortcuts instantly.
+- **Dark Mode JSON Editor**: Styled with Cascadia Code / Consolas for precise manual tuning.
+
+---
+
 ## 🗂️ Foreground Groups
 
 **Foreground Groups** allow you to group multiple windows and bring them all to the foreground together with a single click:
-1. Open the **Settings** window (Double-click the red controller circle or the system tray icon).
+1. Open the **Settings** window.
 2. Select a group (e.g., `Group 1`).
 3. Click **Detect Window**, click on the desired window on your screen, then click **Add Window**.
 4. Whenever you need this workflow cluster, select the group name from the list to raise all grouped windows simultaneously.
@@ -141,7 +171,7 @@ Presets can be selected from the system tray context menu (`Layout Presets`) or 
 
 ## 🛠️ Taskbar Utilities
 
-Right-click the application icon or the red floating controller circle to access utility options:
+Right-click the application icon or the floating controller circle to access utility options:
 - **Center Taskbar Icons**: Automatically centers taskbar icons in real time.
 - **Transparent Taskbar**: Applies transparent styling to the Windows taskbar.
 - **Hide / Show Taskbar**: Completely hides the taskbar to maximize display real estate.
@@ -150,7 +180,7 @@ Right-click the application icon or the red floating controller circle to access
 
 ---
 
-## ⚙️ Configuration & Customization (layouts.json)
+## 📝 Configuration & Customization (layouts.json)
 
 All settings and zone coordinates are automatically persisted in `layouts.json` located in the application working directory.
 
@@ -162,9 +192,6 @@ Key settings in `layouts.json`:
 - `"TabButtonWidth"`, `"TabButtonHeight"`: Width and height of individual tab buttons.
 - `"HideTaskbars"`: `true` automatically hides the taskbar on application start.
 - `"MonitorsLayouts"`: Contains configured zones (`X`, `Y`, `Width`, `Height` in percentages, plus pixel margin `Offset` `[Left, Top, Right, Bottom]`).
-
-> [!NOTE]
-> You can open the **Settings** dialog, edit the JSON directly in the text editor, and click **Apply Settings** to update your setup immediately without restarting the application.
 
 ---
 
